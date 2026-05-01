@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lirik Lagu</title>
+  <style>
+    body {
+      margin: 0;
+      color: pink;
+      font-family: monospace;
+      font-size: 20px;
+      overflow: hidden;
+    }
+
+    /* 🎥 Video background */
+    video.bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    /* overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: -1;
+    }
+
+    /* ✅ lirik cinematic */
+    #output {
+      position: absolute;
+      bottom: 50px;
+      left: 20px;
+      right: auto;
+      width: 60%;
+
+      display:inline-block;
+      max-width: 70%;
+      
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(5px);
+      padding: 15px;
+      border-radius: 10px;
+
+      text-shadow: 0 0 10px pink;
+
+      transition: transform 0.5s ease;
+      z-index: 1;
+    }
+
+    .emoji {
+      position: fixed;
+      font-size: 20px;
+      opacity: 0.4; /* 🔥 diperbaiki (tadi 20 terlalu terang) */
+      pointer-events: none;
+      animation: float 10s linear infinite;
+      z-index: 0;
+    }
+
+    @keyframes float {
+      from { transform: translateY(100vh); }
+      to { transform: translateY(-10vh); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 🎥 Background Video -->
+<video class="bg-video" autoplay muted loop>
+  <source src="background.mp4" type="video/mp4">
+</video>
+
+<div class="overlay"></div>
+
+<!-- 🎧 Audio -->
+<audio id="audio" controls>
+  <source src="shape-of-my-heart.mp3" type="audio/mpeg">
+</audio>
+
+<div id="output"></div>
+
+<script>
+const lyrics = [
+  ["I'm lookin' back on things I've done", 140],
+  ["I never wanna play the same old part", 130],
+  ["Keep you in the dark", 170],
+  ["Now let me show you the shape of my hearttt", 120],
+  ["", 0],
+  ["\nI'm lookin' back on things I've done", 95],
+  ["I was tryin' to be someone (I was tryin' to be someone)", 110],
+  ["Kept you in the dark", 155],
+  ["Now let me show you the shape of my hearttttttttttttttttt:>", 150],
+];
+
+// ✅ delay diperbaiki biar urut (tadi ada yang mundur)
+const delays = [
+  0,
+  5700,
+  11400,
+  16100,
+  16000,
+  16100,
+  24500,
+  31400,
+  33200
+];
+
+const output = document.getElementById("output");
+const audio = document.getElementById("audio");
+
+// emoji
+const emojis = ["❤️"];
+
+function createEmoji() {
+  const e = document.createElement("div");
+  e.className = "emoji";
+  e.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+  e.style.left = Math.random() * 100 + "vw";
+  e.style.fontSize = (15 + Math.random() * 25) + "px";
+  e.style.animationDuration = (8 + Math.random() * 10) + "s";
+  document.body.appendChild(e);
+  setTimeout(() => e.remove(), 15000);
+}
+setInterval(createEmoji, 800);
+
+function animateText(text, speed) {
+  return new Promise(resolve => {
+    let i = 0;
+    const line = document.createElement("div");
+    output.appendChild(line);
+
+    // 🎯 scroll naik
+    output.style.transform = `translateY(-${output.children.length * 28}px)`;
+
+    // 🔥 batasi 5 baris
+    if (output.children.length > 3) {
+      output.removeChild(output.children[0]);
+    }
+
+    function type() {
+      if (i < text.length) {
+        line.innerHTML += text[i];
+        i++;
+        const randomSpeed = speed + (Math.random() * 60 - 30);
+        setTimeout(type, randomSpeed);
+      } else {
+        resolve();
+      }
+    }
+
+    type();
+  });
+}
+
+async function singSong() {
+  for (let i = 0; i < lyrics.length; i++) {
+    const [text, speed] = lyrics[i];
+    const targetTime = delays[i] / 1000;
+
+    while (audio.currentTime < targetTime) {
+      await new Promise(r => setTimeout(r, 50));
+    }
+
+    await animateText(text, speed);
+  }
+}
+
+audio.addEventListener("play", () => {
+  output.innerHTML = "";
+  singSong();
+});
+</script>
+
+</body>
+</html>
